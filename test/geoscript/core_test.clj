@@ -2,7 +2,9 @@
   (:import
    [com.vividsolutions.jts.geom
     Point LineString Polygon MultiPoint MultiLineString])
-  (:require [geoscript.workspace :as workspace])
+  (:require
+   [geoscript.feature   :as feature]
+   [geoscript.workspace :as workspace])
   (:use clojure.test
         geoscript.geom))
 
@@ -51,8 +53,8 @@
     (testing "A postgis workspace"
       (workspace/with-datastore [pg (workspace/make-postgis :database "gis")]
         (is (= (count (workspace/names pg))  1))
-        (is (= (count (workspace/layers pg)) 1))
-        (for [layer (workspace/layers pg)]
+        (is (= (count (workspace/get-layers pg)) 1))
+        (for [layer (workspace/get-layers pg)]
           (is (isa? (class layer) org.geotools.data.AbstractFeatureSource)))
         (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))))
 
@@ -60,6 +62,20 @@
     (workspace/with-datastore [shp (workspace/make-shape :path "data/nybb.shp")]
       (is (isa? (class shp) org.geotools.data.AbstractDataStore))
       (is (= (count (workspace/names shp)) 1))
-      (for [layer (workspace/layers shp)]
+      (for [layer (workspace/get-layers shp)]
         (isa? (class layer) org.geotools.data.AbstractFeatureSource))))))
 
+
+(deftest test-a-schema
+  (testing "The constructor function should return a gt.Schema object"
+    (let [schema (feature/make-schema
+                  :name "test"
+                  :fields [{:name "location"
+                            :projection "EPSG:4326"
+                            :type "com.vividsolutions.jts.geom.Point"}
+                           {:name "type"
+                            :type "java.lang.String"}
+                           {:name "number-field"
+                            :type "java.lang.Integer"}])]
+      (is (= (feature/get-name schema) "test"))
+      (is (= (feature/get-attributes schema) ["type" "number-field"])))))

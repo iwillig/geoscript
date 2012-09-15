@@ -6,15 +6,15 @@
 
 
 (defprotocol IWorkspace
-  (layers    [this])
-  (names     [this])
-  (add-layer [this new-layer])
-  (get-layer [this & {:keys [layer]}]))
+  (get-layers [this])
+  (names      [this])
+  (add-layer  [this new-layer])
+  (get-layer  [this & {:keys [layer]}]))
 
 (extend-type ContentDataStore
   IWorkspace
   (names     [this] (.getTypeNames this))
-  (layers  [this]
+  (get-layers  [this]
     (for [name (names this)]
       (get-layer this :layer name)))
   (add-layer [this new-layer])

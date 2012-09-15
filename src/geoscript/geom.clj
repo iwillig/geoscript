@@ -52,7 +52,7 @@
 (defn make-coordinate
   ([x y] (Coordinate. x y))
   ([x y z] (Coordinate. x y z))
-  ([coord] (Coordinate. (first coord) (second coord))))
+  ([coord] (Coordinate. (coord 0) (coord 1))))
 
 (defn make-point
   ([x y]
