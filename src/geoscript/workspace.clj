@@ -29,7 +29,7 @@
   (DataStoreFinder/getDataStore
    (reduce (fn [rs kv] (assoc rs (name (kv 0)) (kv 1) )) {} params)))
 
-(defn make-postgis
+(defn postgis
   "Convenience function for constructing a gt.PostGIS datastore"
   [& {:keys [port host user passwd database]
       :or {port "5432" host "localhost" user "postgres" passwd ""}}]
@@ -41,7 +41,7 @@
     :dbtype "postgis"
     :database database}))
 
-(defn make-shape
+(defn shape
   [& {:keys [path]}]
   (make-datastore {:url (.toURL (File. path))}))
 
