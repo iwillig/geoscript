@@ -1,12 +1,12 @@
 (ns geoscript.core-test
   (:import
+   [org.opengis.feature.simple SimpleFeature]
    [com.vividsolutions.jts.geom
     Point LineString Polygon MultiPoint MultiLineString])
   (:require
    [geoscript.feature   :as feature]
    [geoscript.workspace :as workspace])
-  (:use clojure.test
-        geoscript.geom))
+  (:use clojure.test geoscript.geom))
 
 (deftest test-basic-geometries
   (testing "Creating a jts.Coordinate")
@@ -68,14 +68,22 @@
 
 (deftest test-a-schema
   (testing "The constructor function should return a gt.Schema object"
-    (let [schema (feature/make-schema
-                  :name "test"
-                  :fields [{:name "location"
-                            :projection "EPSG:4326"
-                            :type "com.vividsolutions.jts.geom.Point"}
-                           {:name "type"
-                            :type "java.lang.String"}
-                           {:name "number-field"
-                            :type "java.lang.Integer"}])]
+    (let [schema
+          (feature/make-schema
+           :name "test"
+           :fields [{:name "location"
+                     :type "Point"}
+                    {:name "type"
+                     :type "String"}
+                    {:name "number-field"
+                     :type "Integer"}])]
       (is (= (feature/get-name schema) "test"))
-      (is (= (feature/get-attributes schema) ["type" "number-field"])))))
+      (is (= (feature/get-field-names schema) ["location" "type" "number-field"])))))
+
+
+(deftest test-creating-features
+  (testing "The constructor function should return a gt.Feature"
+    (let [f (feature/make-feature
+             :geometry (make-point 1 1)
+             :properties {})]
+      (isa? (class f) SimpleFeature))))

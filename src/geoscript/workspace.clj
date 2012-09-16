@@ -32,10 +32,14 @@
 (defn make-postgis
   "Convenience function for constructing a gt.PostGIS datastore"
   [& {:keys [port host user passwd database]
-    :or {port "5432" host "localhost" user "postgres" passwd ""}}]
-  (make-datastore {:port port :host host
-                   :user user :passwd passwd
-                   :dbtype "postgis" :database database}))
+      :or {port "5432" host "localhost" user "postgres" passwd ""}}]
+  (make-datastore
+   {:port port
+    :host host
+    :user user
+    :passwd passwd
+    :dbtype "postgis"
+    :database database}))
 
 (defn make-shape
   [& {:keys [path]}]
