@@ -1,6 +1,7 @@
 (ns geoscript.core-test
   (:import
    [org.opengis.feature.simple SimpleFeature]
+   [org.opengis.geometry Envelope]
    [com.vividsolutions.jts.geom
     Point LineString Polygon MultiPoint MultiLineString])
   (:require
@@ -71,12 +72,7 @@
     (let [schema
           (feature/make-schema
            :name "test"
-           :fields [{:name "location"
-                     :type "Point"}
-                    {:name "type"
-                     :type "String"}
-                    {:name "number-field"
-                     :type "Integer"}])]
+           :fields [["location" "Point"] ["type" "String"] ["number-field" "Integer"]])]
       (is (= (feature/get-name schema) "test"))
       (is (= (feature/get-field-names schema) ["location" "type" "number-field"])))))
 
@@ -84,6 +80,12 @@
 (deftest test-creating-features
   (testing "The constructor function should return a gt.Feature"
     (let [f (feature/make-feature
+             :schema (feature/make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
+             :id 1
              :geometry (make-point 1 1)
-             :properties {})]
-      (isa? (class f) SimpleFeature))))
+             :properties {:name "NYC"})]
+      (is (isa? (class f) SimpleFeature))
+      (is (isa? (class (feature/get-bounds f)) Envelope))
+      (let [name (feature/get-attribute f :name)]
+        (is (isa? (class name) java.lang.String))
+        (is (= name "NYC"))))))

@@ -46,7 +46,7 @@
   (let [builder (doto (SimpleFeatureTypeBuilder.)
                 (.setName name))]
     (doseq [field fields]
-      (.add builder (:name field) (get-type (:type field))))
+      (.add builder (field 0) (get-type (field 1))))
     (.buildFeatureType builder)))
 
 (defprotocol IFeature
@@ -61,4 +61,9 @@
   (get-attribute [this n]    (.getAttribute this (name n)))
   (set-attribute [this n v]  (.setAttribute this (name n) v)))
 
-
+(defn make-feature [& {:keys [properties geometry schema id]}]
+  (let [builder (SimpleFeatureBuilder. schema)]
+    (.add    builder geometry)
+    (doseq [property properties]
+      (.set builder (name (key property)) (val property)))
+    (.buildFeature builder (str id))))
