@@ -4,10 +4,10 @@
    [org.opengis.geometry Envelope]
    [com.vividsolutions.jts.geom
     Point LineString Polygon MultiPoint MultiLineString])
-  (:require
-   [geoscript.feature   :as feature]
-   [geoscript.workspace :as workspace])
-  (:use clojure.test geoscript.geom))
+  (:use [clojure.test]
+        [geoscript.feature]
+        [geoscript.workspace]
+        [geoscript.geom]))
 
 (deftest test-basic-geometries
   (testing "Creating a jts.Coordinate")
@@ -52,40 +52,39 @@
 
   (if test-postgis
     (testing "A postgis workspace"
-      (workspace/with-datastore [pg (workspace/make-postgis :database "gis")]
-        (is (= (count (workspace/names pg))  1))
-        (is (= (count (workspace/get-layers pg)) 1))
-        (for [layer (workspace/get-layers pg)]
+      (with-datastore [pg (postgis :database "gis")]
+        (is (= (count (names pg))  1))
+        (is (= (count (get-layers pg)) 1))
+        (for [layer (get-layers pg)]
           (is (isa? (class layer) org.geotools.data.AbstractFeatureSource)))
         (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))))
 
   (testing "A shapefile workspace"
-    (workspace/with-datastore [shp (workspace/make-shape :path "data/nybb.shp")]
+    (with-datastore [shp (shape :path "data/nybb.shp")]
       (is (isa? (class shp) org.geotools.data.AbstractDataStore))
-      (is (= (count (workspace/names shp)) 1))
-      (for [layer (workspace/get-layers shp)]
+      (is (= (count (names shp)) 1))
+      (for [layer (get-layers shp)]
         (isa? (class layer) org.geotools.data.AbstractFeatureSource))))))
 
 
 (deftest test-a-schema
   (testing "The constructor function should return a gt.Schema object"
-    (let [schema
-          (feature/make-schema
-           :name "test"
-           :fields [["location" "Point"] ["type" "String"] ["number-field" "Integer"]])]
-      (is (= (feature/get-name schema) "test"))
-      (is (= (feature/get-field-names schema) ["location" "type" "number-field"])))))
+    (let [schema (make-schema
+                  :name "test"
+                  :fields [["location" "Point"] ["type" "String"] ["number-field" "Integer"]])]
+      (is (= (get-name schema) "test"))
+      (is (= (get-field-names schema) ["location" "type" "number-field"])))))
 
 
 (deftest test-creating-features
   (testing "The constructor function should return a gt.Feature"
-    (let [f (feature/make-feature
-             :schema (feature/make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
+    (let [f (make-feature
+             :schema (make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
              :id 1
              :geometry (make-point 1 1)
              :properties {:name "NYC"})]
       (is (isa? (class f) SimpleFeature))
-      (is (isa? (class (feature/get-bounds f)) Envelope))
-      (let [name (feature/get-attribute f :name)]
+      (is (isa? (class (get-bounds f)) Envelope))
+      (let [name (get-attribute f :name)]
         (is (isa? (class name) java.lang.String))
         (is (= name "NYC"))))))
