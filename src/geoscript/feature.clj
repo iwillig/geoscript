@@ -7,8 +7,7 @@
 
 (defn get-type [type]
   (Class/forName
-   (case type
-     "String"           "java.lang.String"
+   (condp = type
      "Integer"          "java.lang.Integer"
      "Short"            "java.lang.Short"
      "Float"            "java.lang.Float"
@@ -19,7 +18,8 @@
      "Polygon"          "com.vividsolutions.jts.geom.Polygon"
      "MultiPoint"       "com.vividsolutions.jts.geom.MultiPoint"
      "MulitLineString"  "com.vividsolutions.jts.geom.MultiLineString"
-     "MulitPolygon"     "com.vividsolutions.jts.geom.MultiPolygon")))
+     "MulitPolygon"     "com.vividsolutions.jts.geom.MultiPolygon"
+     "java.lang.String")))
 
 (defn make-field [{:keys [name type]}]
   (let [builder (doto (AttributeTypeBuilder.)
@@ -31,12 +31,16 @@
     (.buildType builder)))
 
 (defprotocol ISchema
+  "A protocol that allows us to attach geoscript methods to a
+   FeatureType object"
+  (create            [this])
   (get-geometry      [this])
   (get-fields        [this])
   (get-field-names   [this]))
 
 (extend-type FeatureType
   ISchema
+  (create       [this obj])
   (get-geometry [this] (.getGeometryDescriptor this))
   (get-fields   [this])
   (get-field-names [this]
@@ -66,9 +70,15 @@
   (get-attribute [this n]    (.getAttribute this (name n)))
   (set-attribute [this n v]  (.setAttribute this (name n) v)))
 
-(defn make-feature [& {:keys [properties geometry schema id]}]
-  (let [builder (SimpleFeatureBuilder. schema)]
-    (.add    builder geometry)
+(defn schema-from-values [values]
+  (make-schema
+   {:fields
+    (for [value values]
+      {:name (name (value 0)) :type (class (value 1))})}))
+
+(defn make-feature [& {:keys [properties schema]}]
+  (let [s       (if (nil? schema) (schema-from-values properties) schema)
+        builder (SimpleFeatureBuilder. s)]
     (doseq [property properties]
       (.set builder (name (key property)) (val property)))
-    (.buildFeature builder (str id))))
+    (.buildFeature builder nil)))

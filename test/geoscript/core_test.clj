@@ -79,6 +79,17 @@
       (is (= (.getTypeName s) "test"))
       (is (= (get-field-names s) '("name" "date" "other-name" "another-name"))))))
 
+(deftest test-features
+  (testing "GeoScript's handling of the gt.Feature object"
+    (testing "Creating a feature object with a schema"
+      (let [s (make-schema {:name "test" :fields [{:name "name" :type java.lang.String}]})
+            f (make-feature :properties {:name "test"} :schema s)]
+        (is (isa? (class f) org.opengis.feature.Feature))
+        (is (= (get-attribute f :name) "test"))))
+    (testing "Creating a feature without an schema object"
+      (let [f (make-feature :properties {:name "test"})]
+        (is (isa? (class f) org.opengis.feature.Feature))))))
+
 (deftest test-iter-features
   (testing "Users should be allowed to iterator through features"
     (with-datastore [pg (postgis :database "gis")]
