@@ -7,18 +7,18 @@
 
 (defprotocol IWorkspace
   (get-layers [this])
-  (names      [this])
+  (get-names      [this])
   (add-layer  [this new-layer])
-  (get-layer  [this & {:keys [layer]}]))
+  (get-layer  [this & {:keys [layer] :or {layer nil}}]))
 
 (extend-type ContentDataStore
   IWorkspace
-  (names     [this] (.getTypeNames this))
+  (get-names     [this] (.getTypeNames this))
   (get-layers  [this]
-    (for [name (names this)]
+    (for [name (get-names this)]
       (get-layer this :layer name)))
   (add-layer [this new-layer])
-  (get-layer [this & {:keys [layer]}]
+  (get-layer [this & {:keys [layer] :or {layer nil}}]
     (if layer
       (.getFeatureSource this layer)
       (.getFeatureSource this))))
@@ -44,6 +44,10 @@
 (defn shape
   [& {:keys [path]}]
   (make-datastore {:url (.toURL (File. path))}))
+
+(defn h2
+  [& {:keys [database]}]
+  (make-datastore {:dbtype "h2" :database database}))
 
 (defmacro with-datastore
   [bindings & body]

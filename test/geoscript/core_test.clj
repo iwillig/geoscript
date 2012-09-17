@@ -6,6 +6,7 @@
     Point LineString Polygon MultiPoint MultiLineString])
   (:use [clojure.test]
         [geoscript.feature]
+        [geoscript.layer]
         [geoscript.workspace]
         [geoscript.geom]))
 
@@ -53,19 +54,18 @@
   (if test-postgis
     (testing "A postgis workspace"
       (with-datastore [pg (postgis :database "gis")]
-        (is (= (count (names pg))  1))
+        (is (= (count (get-names pg))  1))
         (is (= (count (get-layers pg)) 1))
+        (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))
         (for [layer (get-layers pg)]
-          (is (isa? (class layer) org.geotools.data.AbstractFeatureSource)))
-        (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))))
+          (is (isa? (class layer) org.geotools.data.AbstractFeatureSource)))))
 
   (testing "A shapefile workspace"
     (with-datastore [shp (shape :path "data/nybb.shp")]
       (is (isa? (class shp) org.geotools.data.AbstractDataStore))
-      (is (= (count (names shp)) 1))
+      (is (= (count (get-names shp)) 1))
       (for [layer (get-layers shp)]
         (isa? (class layer) org.geotools.data.AbstractFeatureSource))))))
-
 
 (deftest test-a-schema
   (testing "The constructor function should return a gt.Schema object"
@@ -75,16 +75,23 @@
       (is (= (get-name schema) "test"))
       (is (= (get-field-names schema) ["location" "type" "number-field"])))))
 
-
 (deftest test-creating-features
   (testing "The constructor function should return a gt.Feature"
-    (let [f (make-feature
-             :schema (make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
-             :id 1
-             :geometry (make-point 1 1)
-             :properties {:name "NYC"})]
+    (let [schema (make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
+          f      (make-feature
+                  :schema schema
+                  :id 1 ;; what is this?
+                  :geometry (make-point 1 1)
+                  :properties {:name "NYC"})]
       (is (isa? (class f) SimpleFeature))
       (is (isa? (class (get-bounds f)) Envelope))
       (let [name (get-attribute f :name)]
         (is (isa? (class name) java.lang.String))
         (is (= name "NYC"))))))
+
+(deftest test-iter-features
+  (testing "Users should be allowed to iterator through features"
+    (with-datastore [pg (postgis :database "gis")]
+      (with-features [fs (get-features (get-layer pg :layer "nybb"))]
+        (doseq [f fs]
+          (is (isa? (class f) org.opengis.feature.Feature)))))))
