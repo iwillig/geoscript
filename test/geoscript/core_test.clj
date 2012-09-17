@@ -48,12 +48,13 @@
       (is (= (type mls) MultiLineString)))))
 
 (def test-postgis true)
+(def db "gis")
 
 (deftest test-workspaces
 
   (if test-postgis
     (testing "A postgis workspace"
-      (with-datastore [pg (postgis :database "gis")]
+      (with-datastore [pg (postgis :database db)]
         (is (= (count (get-names pg))  1))
         (is (= (count (get-layers pg)) 1))
         (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))
@@ -76,24 +77,38 @@
                        (make-field {:name "other-name" :type "String"})
                        (make-field {:name "another-name" :type java.lang.String})]})]
       (is (isa? (class s) FeatureType))
-      (is (= (.getTypeName s) "test"))
-      (is (= (get-field-names s) '("name" "date" "other-name" "another-name"))))))
+      (let [fields (get-fields s)]
+        (is (= (count fields) 4))
+        (is (seq? fields))))))
 
 (deftest test-features
   (testing "GeoScript's handling of the gt.Feature object"
     (testing "Creating a feature object with a schema"
       (let [s (make-schema {:name "test" :fields [{:name "name" :type java.lang.String}]})
-            f (make-feature :properties {:name "test"} :schema s)]
+            f (make-feature {:properties {:name "test"} :schema s})]
         (is (isa? (class f) org.opengis.feature.Feature))
         (is (= (get-attribute f :name) "test"))))
     (testing "Creating a feature without an schema object"
-      (let [f (make-feature :properties {:name "test"})]
+      (let [f (make-feature {:properties {:name "test"}})]
         (is (isa? (class f) org.opengis.feature.Feature))
-        (is (map? (get-attributes f)))))))
+        (let [attrs (get-attributes f)]
+          (is (map? attrs ))
+          (is (contains? attrs :name)))))))
+
+(deftest test-layers
+  (testing "GeoScript handling of 'Layers'"
+    (with-datastore [pg (postgis :database db)]
+      (let [fs (get-layer pg :layer "nybb")
+            s (get-schema fs)]
+        (is (map? s))
+        (is (contains? s :name))
+        (is (= (:name s) "nybb"))
+        (is (contains? s :fields))
+        (is (seq? (:fields s)))))))
 
 (deftest test-iter-features
   (testing "Users should be allowed to iterator through features"
-    (with-datastore [pg (postgis :database "gis")]
+    (with-datastore [pg (postgis :database db)]
       (with-features [fs (get-features (get-layer pg :layer "nybb"))]
         (doseq [f fs]
           (is (isa? (class f) org.opengis.feature.Feature))

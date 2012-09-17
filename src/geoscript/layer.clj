@@ -1,12 +1,18 @@
 (ns geoscript.layer
+  (:use [geoscript.feature])
   (:import [org.geotools.data FeatureSource]))
 
 (defprotocol ILayer
+  (get-schema   [this])
   (add-feature  [this])
   (get-features [this]))
 
 (extend-type FeatureSource
   ILayer
+  (get-schema   [this]
+    (let [s (.getSchema this)]      
+      {:name (.getTypeName s)
+       :fields (get-fields s)}))
   (add-feature  [this] )
   (get-features [this] (.getFeatures this)))
 

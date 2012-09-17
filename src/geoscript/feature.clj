@@ -42,11 +42,10 @@
   ISchema
   (create       [this obj])
   (get-geometry [this] (.getGeometryDescriptor this))
-  (get-fields   [this])
-  (get-field-names [this]
-    (for [type (.getTypes this)]
-      (-> type .getName .getLocalPart))))
-
+  (get-fields   [this]
+    (for [t (.getTypes this)]
+      {:name (-> t .getName .getLocalPart) 
+       :type (.getBinding t)})))
 
 (defn make-schema
   [{:keys [name fields srs]}]
@@ -80,7 +79,7 @@
     (for [value values]
       {:name (name (value 0)) :type (class (value 1))})}))
 
-(defn make-feature [& {:keys [properties schema]}]
+(defn make-feature [{:keys [properties schema]}]
   (let [s       (if (nil? schema) (schema-from-values properties) schema)
         builder (SimpleFeatureBuilder. s)]
     (doseq [property properties]
