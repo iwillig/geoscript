@@ -1,8 +1,8 @@
 (ns geoscript.feature
   (:import
-   [org.geotools.feature AttributeTypeBuilder]
+   [org.geotools.feature AttributeTypeBuilder NameImpl]
    [org.opengis.feature.simple SimpleFeature]
-   [org.opengis.feature.type FeatureType]
+   [org.opengis.feature.type FeatureType AttributeType]
    [org.geotools.feature.simple SimpleFeatureTypeBuilder SimpleFeatureBuilder]))
 
 (defn get-type [type]
@@ -21,43 +21,48 @@
      "MulitLineString"  "com.vividsolutions.jts.geom.MultiLineString"
      "MulitPolygon"     "com.vividsolutions.jts.geom.MultiPolygon")))
 
-(defn make-field [name type]
+(defn make-field [{:keys [name type]}]
   (let [builder (doto (AttributeTypeBuilder.)
-                  (.setName name)
-                  (.setBinding (get-type type)))]
+                  (.setName name))]
+    ;; this allows either a string or a java class
+    (if (isa? (class type) java.lang.Class)
+      (.setBinding builder (class type))
+      (.setBinding builder (get-type type)))
     (.buildType builder)))
 
 (defprotocol ISchema
-  (get-name          [this])
   (get-geometry      [this])
+  (get-fields        [this])
   (get-field-names   [this]))
 
 (extend-type FeatureType
   ISchema
   (get-geometry [this] (.getGeometryDescriptor this))
+  (get-fields   [this])
   (get-field-names [this]
     (for [type (.getTypes this)]
-      (-> type .getName .getLocalPart)))
-  (get-name  [this] (.getTypeName this)))
+      (-> type .getName .getLocalPart))))
 
 
 (defn make-schema
-  [& {:keys [name fields]}]
+  [{:keys [name fields srs]}]
   (let [builder (doto (SimpleFeatureTypeBuilder.)
-                (.setName name))]
-    (doseq [field fields]
-      (.add builder (field 0) (get-type (field 1))))
+                  (.setName (NameImpl. (or name "feature"))))]
+    (doseq [f fields]
+      (let [field (if (isa? (class f) AttributeType)
+                    f (make-field f))]
+        (.add builder
+              (-> field .getName .getLocalPart)
+              (.getBinding field))))
     (.buildFeatureType builder)))
 
 (defprotocol IFeature
-  (get-bounds       [this])
-  (get-properties   [this])
+  (get-attributes   [this])
   (get-attribute    [this n])
   (set-attribute    [this n v]))
 
 (extend-type SimpleFeature
   IFeature
-  (get-bounds [this]         (.getBounds this))
   (get-attribute [this n]    (.getAttribute this (name n)))
   (set-attribute [this n v]  (.setAttribute this (name n) v)))
 

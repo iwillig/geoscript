@@ -14,9 +14,6 @@
   (length [this])
   (coordinates [this]))
 
-(defprotocol Transformable
-  (transform [this]))
-
 (defprotocol IPoint
   (x [this])
   (y [this])

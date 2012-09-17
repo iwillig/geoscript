@@ -1,9 +1,9 @@
 (ns geoscript.core-test
   (:import
+   [org.opengis.feature.type FeatureType]
    [org.opengis.feature.simple SimpleFeature]
    [org.opengis.geometry Envelope]
-   [com.vividsolutions.jts.geom
-    Point LineString Polygon MultiPoint MultiLineString])
+   [com.vividsolutions.jts.geom Point LineString Polygon MultiPoint MultiLineString])
   (:use [clojure.test]
         [geoscript.feature]
         [geoscript.layer]
@@ -67,27 +67,17 @@
       (for [layer (get-layers shp)]
         (isa? (class layer) org.geotools.data.AbstractFeatureSource))))))
 
-(deftest test-a-schema
+(deftest test-schema
   (testing "The constructor function should return a gt.Schema object"
-    (let [schema (make-schema
-                  :name "test"
-                  :fields [["location" "Point"] ["type" "String"] ["number-field" "Integer"]])]
-      (is (= (get-name schema) "test"))
-      (is (= (get-field-names schema) ["location" "type" "number-field"])))))
-
-(deftest test-creating-features
-  (testing "The constructor function should return a gt.Feature"
-    (let [schema (make-schema :name "test" :fields [["name" "String"] ["location" "Point"]])
-          f      (make-feature
-                  :schema schema
-                  :id 1 ;; what is this?
-                  :geometry (make-point 1 1)
-                  :properties {:name "NYC"})]
-      (is (isa? (class f) SimpleFeature))
-      (is (isa? (class (get-bounds f)) Envelope))
-      (let [name (get-attribute f :name)]
-        (is (isa? (class name) java.lang.String))
-        (is (= name "NYC"))))))
+    (let [s (make-schema
+             {:name "test"
+              :fields [{:name "name" :type java.lang.String}
+                       {:name "date" :type "String"}
+                       (make-field {:name "other-name" :type "String"})
+                       (make-field {:name "another-name" :type java.lang.String})]})]
+      (is (isa? (class s) FeatureType))
+      (is (= (.getTypeName s) "test"))
+      (is (= (get-field-names s) '("name" "date" "other-name" "another-name"))))))
 
 (deftest test-iter-features
   (testing "Users should be allowed to iterator through features"
