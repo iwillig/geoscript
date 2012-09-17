@@ -88,11 +88,13 @@
         (is (= (get-attribute f :name) "test"))))
     (testing "Creating a feature without an schema object"
       (let [f (make-feature :properties {:name "test"})]
-        (is (isa? (class f) org.opengis.feature.Feature))))))
+        (is (isa? (class f) org.opengis.feature.Feature))
+        (is (map? (get-attributes f)))))))
 
 (deftest test-iter-features
   (testing "Users should be allowed to iterator through features"
     (with-datastore [pg (postgis :database "gis")]
       (with-features [fs (get-features (get-layer pg :layer "nybb"))]
         (doseq [f fs]
-          (is (isa? (class f) org.opengis.feature.Feature)))))))
+          (is (isa? (class f) org.opengis.feature.Feature))
+          (is (map? (get-attributes f))))))))

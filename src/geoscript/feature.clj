@@ -67,8 +67,12 @@
 
 (extend-type SimpleFeature
   IFeature
-  (get-attribute [this n]    (.getAttribute this (name n)))
-  (set-attribute [this n v]  (.setAttribute this (name n) v)))
+  (get-attributes [this]
+    (reduce (fn [rs f]
+              (assoc rs (-> f .getDescriptor .getLocalName keyword) (.getValue f)))
+            {} (.getProperties this)))
+  (get-attribute  [this n]    (.getAttribute this (name n)))
+  (set-attribute  [this n v]  (.setAttribute this (name n) v)))
 
 (defn schema-from-values [values]
   (make-schema
