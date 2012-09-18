@@ -26,7 +26,7 @@
                   (.setName name))]
     ;; this allows either a string or a java class
     (if (isa? (class type) java.lang.Class)
-      (.setBinding builder (class type))
+      (.setBinding builder type)
       (.setBinding builder (get-type type)))
     (.buildType builder)))
 
@@ -60,24 +60,25 @@
     (.buildFeatureType builder)))
 
 (defprotocol IFeature
-  (get-attributes   [this])
-  (get-attribute    [this n])
-  (set-attribute    [this n v]))
+  (get-attr    [this n])
+  (set-attr!   [this attr value])
+  (get-attrs   [this])
+  (set-attrs!  [this attrs]))
 
 (extend-type SimpleFeature
   IFeature
-  (get-attributes [this]
+  (get-attrs [this]
     (reduce (fn [rs f]
               (assoc rs (-> f .getDescriptor .getLocalName keyword) (.getValue f)))
             {} (.getProperties this)))
-  (get-attribute  [this n]    (.getAttribute this (name n)))
-  (set-attribute  [this n v]  (.setAttribute this (name n) v)))
+  (get-attr  [this n]    (.getAttribute this (name n)))
+  (set-attr! [this n v]  (.setAttribute this (name n) v)))
 
 (defn schema-from-values [values]
   (make-schema
    {:fields
     (for [value values]
-      {:name (name (value 0)) :type (class (value 1))})}))
+      {:name (name (value 0)) :type (type (value 1))})}))
 
 (defn make-feature [{:keys [properties schema]}]
   (let [s       (if (nil? schema) (schema-from-values properties) schema)

@@ -87,13 +87,19 @@
       (let [s (make-schema {:name "test" :fields [{:name "name" :type java.lang.String}]})
             f (make-feature {:properties {:name "test"} :schema s})]
         (is (isa? (class f) org.opengis.feature.Feature))
-        (is (= (get-attribute f :name) "test"))))
+        (is (= (get-attr f :name) "test"))))
     (testing "Creating a feature without an schema object"
       (let [f (make-feature {:properties {:name "test"}})]
         (is (isa? (class f) org.opengis.feature.Feature))
-        (let [attrs (get-attributes f)]
+        (let [attrs (get-attrs f)]
           (is (map? attrs ))
-          (is (contains? attrs :name)))))))
+          (is (contains? attrs :name)))))
+    (testing "Setting the value of an attribute"
+      (let [f (make-feature {:properties {:name "Ivan"}})]
+        (is (= (get-attr f :name)) 1)
+        (is (= (get-fields (.getFeatureType f)) [{:name "name" :type java.lang.String}]))
+        (.setAttribute f "name" "Ivan Willig")
+        (is (= (.getAttribute f "name")) "Ivan Willig")))))
 
 (deftest test-layers
   (testing "GeoScript handling of 'Layers'"
@@ -112,4 +118,4 @@
       (with-features [fs (get-features (get-layer pg :layer "nybb"))]
         (doseq [f fs]
           (is (isa? (class f) org.opengis.feature.Feature))
-          (is (map? (get-attributes f))))))))
+          (is (map? (get-attrs f))))))))
