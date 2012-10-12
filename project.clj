@@ -7,8 +7,15 @@
   :repositories {"OpenGeo Maven Repository" "http://repo.opengeo.org"}
   :dependencies [[com.vividsolutions/jts "1.12-SNAPSHOT"]
                  [org.clojure/clojure "1.4.0"]
+                 [clj-yaml "0.4.0"]
                  [org.clojure/data.json "0.1.3"]
+
                  [org.geotools/gt-main ~gt-version]
                  [org.geotools/gt-shapefile ~gt-version]
                  [org.geotools.jdbc/gt-jdbc-postgis ~gt-version]
-                 [org.geotools.jdbc/gt-jdbc-h2 ~gt-version]])
+                 [org.geotools.jdbc/gt-jdbc-h2 ~gt-version]
+                 [org.geotools/gt-cql ~gt-version]
+                 [org.geotools.xsd/gt-xsd-sld ~gt-version]
+                 [org.geotools/gt-xml ~gt-version]
+
+                 ])

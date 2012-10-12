@@ -10,6 +10,7 @@
         [geoscript.workspace]
         [geoscript.geom]))
 
+
 (deftest test-basic-geometries
   (testing "Creating a jts.Coordinate")
 
@@ -48,15 +49,14 @@
       (is (= (type mls) MultiLineString)))))
 
 (def test-postgis true)
-(def db "gis")
+(def db "geo")
 
 (deftest test-workspaces
-
   (if test-postgis
     (testing "A postgis workspace"
       (with-datastore [pg (postgis :database db)]
-        (is (= (count (get-names pg))  1))
-        (is (= (count (get-layers pg)) 1))
+        (is (= (count (get-names pg))  2))
+        (is (= (count (get-layers pg)) 2))
         (is (= (isa? (class pg) org.geotools.data.AbstractDataStore)))
         (for [layer (get-layers pg)]
           (is (isa? (class layer) org.geotools.data.AbstractFeatureSource)))))
