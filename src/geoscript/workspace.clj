@@ -13,7 +13,7 @@
 
 (extend-type ContentDataStore
   IWorkspace
-  (get-names     [this] (.getTypeNames this))
+  (get-names   [this] (.getTypeNames this))
   (get-layers  [this]
     (for [name (get-names this)]
       (get-layer this :layer name)))
@@ -27,7 +27,7 @@
   "Constructs a gt.DataStore from Clojure key value pairs"
   [params]
   (DataStoreFinder/getDataStore
-   (reduce (fn [rs kv] (assoc rs (name (kv 0)) (kv 1) )) {} params)))
+   (into {} (for [kv params] [(name (kv 0)) (kv 1)]))))
 
 (defn postgis
   "Convenience function for constructing a gt.PostGIS datastore"

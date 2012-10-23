@@ -1,9 +1,36 @@
 (ns geoscript.feature
   (:import
+   [org.geotools.data DefaultTransaction]
    [org.geotools.feature AttributeTypeBuilder NameImpl]
    [org.opengis.feature.simple SimpleFeature]
    [org.opengis.feature.type FeatureType AttributeType]
    [org.geotools.feature.simple SimpleFeatureTypeBuilder SimpleFeatureBuilder]))
+
+
+(defmulti convert-type (fn [x] x))
+
+(defmethod convert-type :integer [x]
+  java.lang.Integer)
+
+(defmethod convert-type :int [x]
+  java.lang.Integer)
+
+(defmethod convert-type :short [x]
+  java.lang.Short)
+
+(defmethod convert-type :float [x]
+  java.lang.Float)
+
+(defmethod convert-type :long [x]
+  java.lang.Long)
+
+(defmethod convert-type :geometry [x]
+  com.vividsolutions.jts.geom.Geometry)
+
+(defmethod convert-type :point [x]
+  com.vividsolutions.jts.geom.Point)
+
+
 
 (defn get-type [type]
   (Class/forName
@@ -33,14 +60,12 @@
 (defprotocol ISchema
   "A protocol that allows us to attach geoscript methods to a
    FeatureType object"
-  (create            [this])
   (get-geometry      [this])
   (get-fields        [this])
   (get-field-names   [this]))
 
 (extend-type FeatureType
   ISchema
-  (create       [this obj])
   (get-geometry [this] (.getGeometryDescriptor this))
   (get-fields   [this]
     (for [t (.getTypes this)]
@@ -86,3 +111,11 @@
     (doseq [property properties]
       (.set builder (name (key property)) (val property)))
     (.buildFeature builder nil)))
+
+(defn write-features [source sink]
+  (let [trans (DefaultTransaction. "trans")]
+    (try
+      (.addFeatures sink source)
+      (.commit trans)
+      (catch Exception e (.printStackTrace e) (.rollback trans))
+      (finally (.close trans)))))

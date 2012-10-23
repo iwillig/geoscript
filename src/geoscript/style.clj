@@ -6,6 +6,7 @@
    [java.net URI]
    [org.geotools.sld SLDConfiguration]
    [org.geotools.xml Parser]
+   [org.geotools.styling SLDTransformer]
    [org.geotools.filter.text.ecql ECQL]
    [org.geotools.filter AttributeExpressionImpl]
    [org.opengis.filter.expression Literal]
@@ -51,8 +52,8 @@
 
 (defn make-font
   "Takes a clj.Map and returns a GeoTools FontImp object
-Has a set of sane default for the font family, size and weight
-"
+   Has a set of sane default for the font family, size and weight
+  "
   [options]
   (let [{:keys [family size style weight]
          :or {weight (literal "normal")
@@ -71,6 +72,11 @@ Has a set of sane default for the font family, size and weight
   (let [{:keys [color opacity]} (make-literals options)]
     (.createFill style-factory color opacity)))
 
+(defn to-float [x]
+  (if (number? x)
+    x
+    (Float/parseFloat (str x))))
+
 ;; color - The color of the line
 ;; width - The width of the line
 ;; opacity - The opacity of the line
@@ -83,11 +89,17 @@ Has a set of sane default for the font family, size and weight
 (defn make-stroke
   "Returns a StrokeImpl object"
   [options]
-  (let [{:keys [color width opacity]} (make-literals options)]
+  (let [{:keys [color width opacity line-join dash-array line-cap dash-offset]} (make-literals options)]
     (.createStroke style-factory
                    color
                    width
-                   opacity)))
+                   opacity
+                   line-join
+                   line-cap
+                   (float-array (map to-float (:dash-array options)))
+                   dash-offset
+                   nil
+                   nil)))
 
 (defn make-halo
   [{:keys [color radius opacity]}]
@@ -166,7 +178,7 @@ Has a set of sane default for the font family, size and weight
   [{:keys [url]}]
   (let [res (OnLineResourceImpl. (URI. url))]
     ;; disable modifying the resource at run time
-    ;; the geotools
+    ;; from the geotools guide
     (.freeze res)
     res))
 
@@ -224,7 +236,8 @@ Has a set of sane default for the font family, size and weight
 
     rule))
 
-(defn make-feature-style [{:keys [rules name]}]
+(defn make-feature-style
+  [{:keys [rules name]}]
   (let [type-style (.createFeatureTypeStyle style-factory)]
   (doseq [rule rules]
     (let [r (make-rule rule)]
@@ -233,14 +246,33 @@ Has a set of sane default for the font family, size and weight
     (.setName type-style name))
   type-style))
 
-(defn make-style [{:keys [name title abstract feature-styles]}]
-  (let [style (.createStyle style-factory)
+(defn make-style
+  [{:keys [name title abstract feature-styles]}]
+  (let [style (doto (.createStyle style-factory)
+                (.setName name)
+                (.setTitle title)
+                (.setAbstract abstract))
         type-styles (for [fs feature-styles]
                       (make-feature-style fs))]
     (doseq [fs feature-styles]
       (let [ts (make-feature-style fs)]
         (-> style .featureTypeStyles (.add ts))))
    style))
+
+(defn make-sld [{:keys [name title abstract style]}]
+  (let [sld (doto (.createStyledLayerDescriptor style-factory)
+              (.setName name)
+              (.setTitle title)
+              (.setAbstract abstract))
+        layer (.createNamedLayer style-factory)]
+    (.addStyle layer style)
+    (-> sld   .layers (.add layer))
+    sld))
+
+(defn style->sld [style]
+  (let [trans (doto (SLDTransformer.)
+                (.setIndentation 2))]
+    (.transform trans style)))
 
 (defn parse-string [opts]
   (make-style (yaml/parse-string opts)))

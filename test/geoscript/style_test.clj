@@ -188,17 +188,17 @@
 
   (testing "creating a graphic"
     (let [graphic (make-graphic {:symbols [{:mark {}}]})]
-      (is (instance? Graphic graphic)))))
+      (is (instance? Graphic graphic))))
 
-(deftest style-generation
-  (testing "A simple map should generate a style object"
-    (let [style (make-style
-                 {:name "test"
-                  :title "a test style"
-                  :feature-styles
-                  {:rules
-                   [{:where "boroname = 'Brooklyn'"
-                     :name "a test rule"
-                     :symbolizer
-                     [{:line {:color "#eee"}}]}]}})]
-      (is (instance? StyleImpl style)))))
+  (deftest style-generation
+    (testing "A simple map should generate a style object"
+      (let [style (make-style
+                   {:name "test"
+                    :title "a test style"
+                    :feature-styles
+                    {:rules
+                     [{:where "boroname = 'Brooklyn'"
+                       :name "a test rule"
+                       :symbolizer
+                       [{:line {:color "#eee"}}]}]}})]
+        (is (instance? StyleImpl style))))))
