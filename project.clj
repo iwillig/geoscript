@@ -1,6 +1,6 @@
 (def gt-version "9-SNAPSHOT")
 
-(defproject geoscript "0.6.3-SNAPSHOT"
+(defproject geoscript "0.6.4-SNAPSHOT"
   :description "A Clojure implementation of the geoscript project"
   :url "geoscript.org"
 

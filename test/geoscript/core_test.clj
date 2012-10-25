@@ -48,7 +48,7 @@
                 [[-180 -90] [0 0] [180 90]]])]
       (is (= (type mls) MultiLineString)))))
 
-(def test-postgis true)
+(def test-postgis false)
 (def db "geo")
 
 (deftest test-workspaces
