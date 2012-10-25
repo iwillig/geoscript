@@ -86,20 +86,28 @@
 ;; dashOffset - - where in the dash array to start drawing from
 ;; graphicFill - - a graphic object to fill the line with
 ;; graphicStroke - - a graphic object to draw the line with
+(comment
+
+  )
+
 (defn make-stroke
   "Returns a StrokeImpl object"
   [options]
-  (let [{:keys [color width opacity line-join dash-array line-cap dash-offset]} (make-literals options)]
-    (.createStroke style-factory
-                   color
-                   width
-                   opacity
-                   line-join
-                   line-cap
-                   (float-array (map to-float (:dash-array options)))
-                   dash-offset
-                   nil
-                   nil)))
+  (let [{:keys [color width opacity line-join dash-array line-cap dash-offset]} (make-literals options)
+        stroke (.createStroke style-factory
+                       color
+                       width
+                       opacity
+                       line-join
+                       line-cap
+                       nil
+                       dash-offset
+                       nil
+                       nil)]
+    ;; only set the dash-array when necessary
+    (when dash-array
+      (.setDashArray stroke (float-array (map to-float (:dash-array options)))))
+    stroke))
 
 (defn make-halo
   [{:keys [color radius opacity]}]
@@ -220,20 +228,51 @@
         text-symb (if text (make-text text))]
     (remove nil? [polygon-symb line-symb text-symb point-symb])))
 
+;; scales for EPSG:4326
+;; investigate how to generate these for 3587 and other projections
+
+(def scales
+  [4.429438425E8
+   2.2147192125E8
+   1.10735960625E8
+   5.53679803125E7
+   2.768399015625E7
+   1.3841995078125E7
+   6920997.5390625
+   3460498.76953125
+   1730249.384765625
+   865124.6923828125
+   432562.34619140625
+   216281.17309570312
+   108140.58654785156
+   54070.29327392578
+   27035.14663696289
+   13517.573318481445])
+
 (defn make-rule
-  [{:keys [name where symbolizers max min]}]
+  [{:keys [name where symbolizers max min zoom]}]
   (let [rule (doto (.createRule style-factory)
                (.setName name))
+        zoom (vec zoom)
         symbs (make-symbolizers symbolizers)]
     (-> rule .symbolizers (.addAll symbs))
 
-    (if where
+    (when where
       (.setFilter rule (ECQL/toFilter where)))
-    (if max
+    (when max
       (.setMaxScaleDenominator rule (double max)))
-    (if min
+    (when min
       (.setMinScaleDenominator rule (double min)))
 
+    ;; hack lets figure out how we can make this better
+    (when zoom
+      (let [max (get scales (get zoom 0))
+            min (get scales (get zoom 1))]
+        (when max
+          (.setMaxScaleDenominator rule max))
+        (when min
+          (.setMinScaleDenominator rule min))))
+    
     rule))
 
 (defn make-feature-style
@@ -282,5 +321,8 @@
 
 (defn parse-sld-string [])
 (defn parse-sld-file [])
+
+(defn test []
+  (spit "test.sld" (style->sld (parse-yaml-file "/home/ivan/dev/clojure/geoscript/resources/planet_osm_line.yml"))))
 
 (defn -main [& args])
