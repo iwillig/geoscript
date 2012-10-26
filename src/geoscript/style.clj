@@ -252,30 +252,30 @@
              1689.6966648101807
              844.8483324050903])
 
+(defn set-max-denominator! [rule max]
+  (when max
+    (.setMaxScaleDenominator rule (double max))))
+
+(defn set-min-denominator! [rule min]
+  (when min
+    (.setMinScaleDenominator rule (double min))))
+
 (defn make-rule
-  [{:keys [name where symbolizers max min zoom]}]
+  ;; consider adding support back for scale numbers
+  [{:keys [name where symbolizers zoom-levels]}]
   (let [rule (doto (.createRule style-factory)
                (.setName name))
-        zoom (vec zoom)
-        symbs (make-symbolizers symbolizers)]
+        symbs (make-symbolizers symbolizers)
+        max (get scales (get zoom-levels :max))
+        min (get scales (get zoom-levels :min))]
+
     (-> rule .symbolizers (.addAll symbs))
 
     (when where
       (.setFilter rule (ECQL/toFilter where)))
-    (when max
-      (.setMaxScaleDenominator rule (double max)))
-    (when min
-      (.setMinScaleDenominator rule (double min)))
 
-    ;; hack lets figure out how we can make this better
-    (when zoom
-      (let [max (get scales (get zoom 0))
-            min (get scales (get zoom 1))]
-        (when max
-          (.setMaxScaleDenominator rule max))
-        (when min
-          (.setMinScaleDenominator rule min))))
-    
+    (set-max-denominator! rule max)
+    (set-min-denominator! rule min)
     rule))
 
 (defn make-feature-style
@@ -316,14 +316,23 @@
                 (.setIndentation 2))]
     (.transform trans style)))
 
-(defn parse-string [opts]
-  (make-style (yaml/parse-string opts)))
 
 (defn parse-yaml-file [path]
   (parse-string (slurp path)))
 
-(defn parse-sld-string [])
-(defn parse-sld-file [])
+(defn convert-yaml->sld [in out]
+  (let [in (io/resource in)
+        style (parse-yaml-file in)
+        sld  (style->sld (parse-yaml-file in))]
+    (spit (io/resource out) sld)))
 
+
+(comment
+
+  (convert-yaml->sld "resources/test.sld" "resources/planet_osm_line.yml")
+
+  (spit "test.sld" (style->sld (parse-yaml-file "resources/planet_osm_line.yml")))
+
+  )
 
 (defn -main [& args])
