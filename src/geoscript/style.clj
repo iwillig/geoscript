@@ -77,23 +77,11 @@
     x
     (Float/parseFloat (str x))))
 
-;; color - The color of the line
-;; width - The width of the line
-;; opacity - The opacity of the line
-;; lineJoin - - the type of Line joint
-;; lineCap - - the type of line cap
-;; dashArray - - an array of floats describing the dashes in the line
-;; dashOffset - - where in the dash array to start drawing from
-;; graphicFill - - a graphic object to fill the line with
-;; graphicStroke - - a graphic object to draw the line with
-(comment
-
-  )
-
 (defn make-stroke
   "Returns a StrokeImpl object"
   [options]
-  (let [{:keys [color width opacity line-join dash-array line-cap dash-offset]} (make-literals options)
+  (let [{:keys [color width opacity line-join
+                dash-array line-cap dash-offset]} (make-literals options)
         stroke (.createStroke style-factory
                        color
                        width
@@ -126,7 +114,8 @@
 
 (defn make-line-placement
   [options]
-  (let [{:keys [offset gap inital-gap]} (make-literals (select-keys options [:offset :gap :inital-gap ]))
+  (let [{:keys [offset gap inital-gap]}
+        (make-literals (select-keys options [:offset :gap :inital-gap ]))
         line-placement (.createLinePlacement style-factory offset)]
     (if gap
       (.setGap line-placement gap))
@@ -183,12 +172,11 @@
    (literal rotation)))
 
 (defn make-online-resource
-  [{:keys [url]}]
-  (let [res (OnLineResourceImpl. (URI. url))]
-    ;; disable modifying the resource at run time
-    ;; from the geotools guide
+  [{:keys [uri format]
+    :or   {format "png"}}]
+  (let [res (OnLineResourceImpl. (URI. uri))]
     (.freeze res)
-    res))
+    (.externalGraphic style-factory res format nil)))
 
 (defn make-symbol
   [{:keys [mark online]}]
@@ -228,29 +216,27 @@
         text-symb (if text (make-text text))]
     (remove nil? [polygon-symb line-symb text-symb point-symb])))
 
-;; scales for EPSG:4326
-;; investigate how to generate these for 3587 and other projections
-;; supports zoom levels 1 to 20
-(def scales [4.429438425E8
-             2.2147192125E8
-             1.10735960625E8
-             5.53679803125E7
-             2.768399015625E7
-             1.3841995078125E7
-             6920997.5390625
-             3460498.76953125
-             1730249.384765625
-             865124.6923828125
-             432562.34619140625
-             216281.17309570312
-             108140.58654785156
-             54070.29327392578
-             27035.14663696289
-             13517.573318481445
-             6758.786659240723
-             3379.3933296203613
-             1689.6966648101807
-             844.8483324050903])
+(def scales
+  [4.429438425E8
+   2.2147192125E8
+   1.10735960625E8
+   5.53679803125E7
+   2.768399015625E7
+   1.3841995078125E7
+   6920997.5390625
+   3460498.76953125
+   1730249.384765625
+   865124.6923828125
+   432562.34619140625
+   216281.17309570312
+   108140.58654785156
+   54070.29327392578
+   27035.14663696289
+   13517.573318481445
+   6758.786659240723
+   3379.3933296203613
+   1689.6966648101807
+   844.8483324050903])
 
 (defn set-max-denominator! [rule max]
   (when max
@@ -317,6 +303,9 @@
     (.transform trans style)))
 
 
+(defn parse-string [opts]
+  (make-style (yaml/parse-string opts)))
+
 (defn parse-yaml-file [path]
   (parse-string (slurp path)))
 
@@ -326,13 +315,5 @@
         sld  (style->sld (parse-yaml-file in))]
     (spit (io/resource out) sld)))
 
-
-(comment
-
-  (convert-yaml->sld "resources/test.sld" "resources/planet_osm_line.yml")
-
-  (spit "test.sld" (style->sld (parse-yaml-file "resources/planet_osm_line.yml")))
-
-  )
-
-(defn -main [& args])
+(defn -main [& args]
+  (spit "resources/test.sld" (style->sld (parse-yaml-file "resources/test.yml"))))

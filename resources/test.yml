@@ -2,6 +2,47 @@ name: OSM Planet line Style
 feature-styles:
 
   - rules:
+    - zoom-levels:
+        max: 13
+      symbolizers:
+        graphic:
+          size: 5
+          symbols:
+            - online:
+                format: gif
+                uri: file:///home/ivan/dev/clojure/ogstudio/nielsen-data/icons/20_airtransportation.gif
+            - mark:
+                name: square
+                size: 10
+                stroke:
+                  color: '#1161d9'
+                fill:
+                  color: '#1161d9'
+
+        text:
+          halo:
+            radius: 1
+            color: '#ffffff'
+          placement:
+            displacment:
+              x: 10
+              y: 10
+            rotation: 0
+            point:
+              x: .7
+              y: .2
+          vendor:
+            autoWrap: '90'
+          font:
+            size: 10
+            family: Droid Sans
+          fill:
+            color: '#1161d9'
+          label:
+            property: name
+
+
+  - rules:
       - where: boundary = 'administrative' and admin_level = 4
         symbolizers:
           line:
