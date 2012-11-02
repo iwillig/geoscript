@@ -23,6 +23,9 @@
     PointSymbolizer
     LineSymbolizer]))
 
+;; forward declarations
+(declare make-stroke)
+
 ;; the geotools style factory
 (def style-factory (CommonFactoryFinder/getStyleFactory))
 ;; the filter factory
@@ -49,6 +52,10 @@
   [options]
   (format-map literal options))
 
+(defn to-float [x]
+  (if (number? x)
+    x
+    (Float/parseFloat (str x))))
 
 (defn make-font
   "Takes a clj.Map and returns a GeoTools FontImp object
@@ -72,10 +79,38 @@
   (let [{:keys [color opacity]} (make-literals options)]
     (.createFill style-factory color opacity)))
 
-(defn to-float [x]
-  (if (number? x)
-    x
-    (Float/parseFloat (str x))))
+
+(defn make-mark
+  [{:keys [name size fill stroke size rotation]}]
+  (.createMark style-factory
+   (literal name)
+   (make-stroke stroke)
+   (make-fill fill)
+   (literal size)
+   (literal rotation)))
+
+(defn make-online-resource
+  [{:keys [uri format]
+    :or   {format "image/png"}}]
+  (.createExternalGraphic style-factory uri format))
+
+(defn make-symbol
+  [{:keys [mark online]}]
+  (cond
+   (not (nil? mark)) (make-mark mark)
+   (not (nil? online)) (make-online-resource online)))
+
+
+(defn make-graphic
+  [{:keys [symbols opacity size rotation anchor displacement]}]
+  (.createGraphic
+   style-factory
+   nil
+   nil
+   (into-array Symbol (map make-symbol symbols))
+   (literal opacity)
+   (literal size)
+   (literal rotation)))
 
 (defn make-stroke
   "Returns a StrokeImpl object"
@@ -95,6 +130,13 @@
     ;; only set the dash-array when necessary
     (when dash-array
       (.setDashArray stroke (float-array (map to-float (:dash-array options)))))
+    
+    (when (:graphic-stroke options)
+      (.setGraphicStroke stroke (make-graphic (:graphic-stroke options))))
+
+    (when (:graphic-fill options)
+      (.setGraphicFill stroke (make-graphic (:graphic-fill options))))
+    
     stroke))
 
 (defn make-halo
@@ -141,7 +183,7 @@
                   {:point point :displacment displacment :rotation rotation})))
 
 (defn make-text
-  [{:keys [font label fill halo placement vendor]}]
+  [{:keys [font label fill halo placement vendor graphic]}]
   (let [fonts (into-array Font [(make-font font)])
         halo (if halo (make-halo halo) nil)
         placement (if placement (make-label-placement placement) nil)
@@ -159,41 +201,11 @@
     (if vendor
       (doseq [v vendor]
         (.put options (name (v 0)) (v 1))))
+
+    (when graphic
+      (.setGraphic text-symb (make-graphic graphic)))
+
     text-symb))
-
-
-(defn make-mark
-  [{:keys [name size fill stroke size rotation]}]
-  (.createMark style-factory
-   (literal name)
-   (make-stroke stroke)
-   (make-fill fill)
-   (literal size)
-   (literal rotation)))
-
-(defn make-online-resource
-  [{:keys [uri format]
-    :or   {format "png"}}]
-  (let [res (OnLineResourceImpl. (URI. uri))]
-    (.freeze res)
-    (.externalGraphic style-factory res format nil)))
-
-(defn make-symbol
-  [{:keys [mark online]}]
-  (cond
-   (not (nil? mark)) (make-mark mark)
-   (not (nil? online)) (make-online-resource online)))
-
-(defn make-graphic
-  [{:keys [symbols opacity size rotation anchor displacement]}]
-  (.createGraphic
-   style-factory
-   nil
-   nil
-   (into-array Symbol (map make-symbol symbols))
-   (literal opacity)
-   (literal size)
-   (literal rotation)))
 
 
 (defn make-polygon

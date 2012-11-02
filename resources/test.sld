@@ -4,6 +4,65 @@
   <sld:FeatureTypeStyle>
     <sld:Name>name</sld:Name>
     <sld:Rule>
+      <ogc:Filter>
+        <ogc:PropertyIsEqualTo>
+          <ogc:PropertyName>highway</ogc:PropertyName>
+          <ogc:Literal>primary</ogc:Literal>
+        </ogc:PropertyIsEqualTo>
+      </ogc:Filter>
+      <sld:MinScaleDenominator>432562.34619140625</sld:MinScaleDenominator>
+      <sld:MaxScaleDenominator>2.768399015625E7</sld:MaxScaleDenominator>
+      <sld:TextSymbolizer>
+        <sld:Label>
+          <ogc:PropertyName/>
+        </sld:Label>
+        <sld:Font>
+          <sld:CssParameter name="font-family">Arial</sld:CssParameter>
+          <sld:CssParameter name="font-size">10</sld:CssParameter>
+          <sld:CssParameter name="font-style">normal</sld:CssParameter>
+          <sld:CssParameter name="font-weight">normal</sld:CssParameter>
+        </sld:Font>
+        <sld:Fill/>
+        <sld:Graphic>
+          <sld:ExternalGraphic>
+            <sld:OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="file:image.gif"/>
+            <sld:Format>image/gif</sld:Format>
+          </sld:ExternalGraphic>
+          <sld:Size>5</sld:Size>
+        </sld:Graphic>
+      </sld:TextSymbolizer>
+    </sld:Rule>
+  </sld:FeatureTypeStyle>
+  <sld:FeatureTypeStyle>
+    <sld:Name>name</sld:Name>
+    <sld:Rule>
+      <ogc:Filter>
+        <ogc:PropertyIsEqualTo>
+          <ogc:PropertyName>highway</ogc:PropertyName>
+          <ogc:Literal>primary</ogc:Literal>
+        </ogc:PropertyIsEqualTo>
+      </ogc:Filter>
+      <sld:MinScaleDenominator>432562.34619140625</sld:MinScaleDenominator>
+      <sld:MaxScaleDenominator>2.768399015625E7</sld:MaxScaleDenominator>
+      <sld:LineSymbolizer>
+        <sld:Stroke>
+          <sld:GraphicStroke>
+            <sld:Graphic>
+              <sld:Mark>
+                <sld:WellKnownName>shape://vertline</sld:WellKnownName>
+                <sld:Fill/>
+                <sld:Stroke/>
+              </sld:Mark>
+              <sld:Size>12</sld:Size>
+            </sld:Graphic>
+          </sld:GraphicStroke>
+        </sld:Stroke>
+      </sld:LineSymbolizer>
+    </sld:Rule>
+  </sld:FeatureTypeStyle>
+  <sld:FeatureTypeStyle>
+    <sld:Name>name</sld:Name>
+    <sld:Rule>
       <sld:MaxScaleDenominator>54070.29327392578</sld:MaxScaleDenominator>
       <sld:TextSymbolizer>
         <sld:Label>
@@ -41,6 +100,10 @@
       </sld:TextSymbolizer>
       <sld:PointSymbolizer>
         <sld:Graphic>
+          <sld:ExternalGraphic>
+            <sld:OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="file:/home/ivan/dev/clojure/ogstudio/nielsen-data/icons/20_airtransportation.gif"/>
+            <sld:Format>image/gif</sld:Format>
+          </sld:ExternalGraphic>
           <sld:Mark>
             <sld:Fill>
               <sld:CssParameter name="fill">#1161d9</sld:CssParameter>

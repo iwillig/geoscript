@@ -1,6 +1,39 @@
 name: OSM Planet line Style
 feature-styles:
 
+
+
+  - rules:
+      - where: highway = 'primary'
+        zoom-levels: 
+          max: 4 
+          min: 10
+        symbolizers:
+          text:
+            graphic:
+              size: 5
+              symbols:
+                - online:
+                    format: image/gif
+                    uri: file:image.gif
+
+
+  - rules:
+      - where: highway = 'primary'
+        zoom-levels: 
+          max: 4 
+          min: 10
+        symbolizers:
+          line:
+            stroke:
+              width: 1
+              color: '#000000'
+              graphic-stroke:
+                size: 12
+                symbols:
+                  - mark:
+                      name: shape://vertline
+
   - rules:
     - zoom-levels:
         max: 13
@@ -9,7 +42,7 @@ feature-styles:
           size: 5
           symbols:
             - online:
-                format: gif
+                format: image/gif
                 uri: file:///home/ivan/dev/clojure/ogstudio/nielsen-data/icons/20_airtransportation.gif
             - mark:
                 name: square
