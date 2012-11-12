@@ -15,7 +15,7 @@
 
                  [org.clojure/data.json "0.1.3"]
                  [org.geotools/gt-main ~gt-version]
-                 [org.geotools/gt-svg]
+                 [org.geotools/gt-svg ~gt-version]
                  [org.geotools/gt-shapefile ~gt-version]
                  [org.geotools.jdbc/gt-jdbc-postgis ~gt-version]
                  [org.geotools.jdbc/gt-jdbc-h2 ~gt-version]

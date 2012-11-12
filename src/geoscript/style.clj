@@ -66,7 +66,7 @@
          :or {weight (literal "normal")
               size (literal 10)
               style (literal "normal")
-              family (literal "Arial")}} (make-literals options)]
+              family (literal "Droid Sans")}} (make-literals options)]
     (.createFont style-factory
                  family
                  style
