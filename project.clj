@@ -1,12 +1,12 @@
-(def gt-version "9-SNAPSHOT")
+(def gt-version "8.4")
 
-(defproject geoscript "0.6.7-SNAPSHOT"
+(defproject geoscript "0.6.8-SNAPSHOT"
   :description "A Clojure implementation of the geoscript project"
   :url "geoscript.org"
 
   :plugins [[lein-swank "1.4.4"]]
   :repositories {"OpenGeo Maven Repository" "http://repo.opengeo.org"}
-  :offline? true
+;;   :offline? true
   :dependencies [[com.vividsolutions/jts "1.12-SNAPSHOT"]
                  [org.clojure/clojure "1.4.0"]
 

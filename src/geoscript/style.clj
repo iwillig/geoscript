@@ -24,7 +24,7 @@
     LineSymbolizer]))
 
 ;; forward declarations
-(declare make-stroke)
+(declare make-stroke make-graphic)
 
 ;; the geotools style factory
 (def style-factory (CommonFactoryFinder/getStyleFactory))
@@ -57,6 +57,8 @@
     x
     (Float/parseFloat (str x))))
 
+
+
 (defn make-font
   "Takes a clj.Map and returns a GeoTools FontImp object
    Has a set of sane default for the font family, size and weight
@@ -76,8 +78,12 @@
 (defn make-fill
   "Takes a clj.Map and returns a Geotools fill object"
   [options]
-  (let [{:keys [color opacity]} (make-literals options)]
-    (.createFill style-factory color opacity)))
+  (let [{:keys [color opacity]} (make-literals options)
+        fill (.createFill style-factory  color opacity)]
+    (when (:graphic-fill options)
+      (.setGraphicFill fill (make-graphic (:graphic-fill options))))
+    
+    fill))
 
 
 (defn make-mark
@@ -112,6 +118,8 @@
    (literal size)
    (literal rotation)))
 
+
+
 (defn make-stroke
   "Returns a StrokeImpl object"
   [options]
@@ -133,9 +141,6 @@
     
     (when (:graphic-stroke options)
       (.setGraphicStroke stroke (make-graphic (:graphic-stroke options))))
-
-    (when (:graphic-fill options)
-      (.setGraphicFill stroke (make-graphic (:graphic-fill options))))
     
     stroke))
 
